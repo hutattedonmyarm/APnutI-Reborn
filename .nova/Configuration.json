@@ -1,0 +1,8 @@
+{
+  "com.thorlaksson.phpcs.runOnChange" : "onSave",
+  "com.thorlaksson.phpcs.standard" : "\/Volumes\/Alyx\/Users\/max\/Dev\/Pnut\/Untitled\/phpcs.xml",
+  "editor.default_syntax" : "php",
+  "php.validate" : "onSave",
+  "workspace.color" : 1,
+  "workspace.name" : "APnutI"
+}

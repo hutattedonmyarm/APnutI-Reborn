@@ -1,0 +1,21 @@
+{
+  "name": "hutattedonmyarm/apnuti",
+  "type": "library",
+  "description": "PHP Pnut library",
+  "keywords": ["pnut", "api"],
+  "license": "MIT",
+  "require": {
+      "monolog/monolog": "^2.0",
+      "psr/log": "^1.1",
+      "php": "^7.4|^8.0",
+      "ext-pdo": "*",
+      "ext-curl": "*",
+      "ext-json": "*",
+      "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+        "APnutI\\": "src"
+    }
+  }
+}
