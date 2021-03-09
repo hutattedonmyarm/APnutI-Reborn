@@ -455,7 +455,7 @@ class APnutI
       $this->logger->info("No AT");
     }
 
-    // Remove in p roduction again
+    // Remove in production again
     try {
       $p = new Post($this->get('/posts/'.$post_id, $args));
       $this->logger->debug(json_encode($p));
@@ -479,5 +479,110 @@ class APnutI
   public function getAvatar(int $user_id, array $args = []): string
   {
     return $this->get('/users/'.$user_id.'/avatar', $args);
+  }
+
+  public function updateAvatar(
+      string $file_path,
+      ?string $filename = null,
+      ?string $content_type = null
+  ): User {
+    if (empty($content_type)) {
+      $content_type = mime_content_type($file_path);
+    }
+    if (empty($filename)) {
+      $filename = basename($file_path);
+    }
+
+    $cf = new \CURLFile($file_path, $content_type, $filename);
+    $parameters = ['avatar' => $cf];
+    return new User(
+        $this->post('/users/me/avatar', $parameters, 'multipart/form-data')
+    );
+  }
+
+  public function updateAvatarFromUploaded($uploaded_file): User
+  {
+    $filename = $uploaded_file['name'];
+    $filedata = $uploaded_file['tmp_name'];
+    $filetype = $uploaded_file['type'];
+    return $this->updateAvatar($filedata, $filename, $filetype);
+  }
+
+  public function replyToPost(
+      string $text,
+      int $reply_to,
+      bool $is_nsfw = false,
+      bool $auto_crop = false
+  ): Post {
+    return createPost($text, $reply_to, $is_nsfw, $auto_crop);
+  }
+
+  public function createPost(
+      string $text,
+      bool $is_nsfw = false,
+      bool $auto_crop = false,
+      ?int $reply_to = null
+  ): Post {
+    $text = $auto_crop ? substr($text, 0, $this->getMaxPostLength()) : $text;
+    $parameters = [
+      'text' => $text,
+      'reply_to' => $reply_to,
+      'is_nsfw' => $is_nsfw,
+    ];
+    return new Post($this->post('posts', $parameters));
+  }
+
+  protected function fetchPnutSystemConfig()
+  {
+    $config = $this->get('/sys/config');
+    self::$POST_MAX_LENGTH = $config['post']['max_length'];
+    //self::$POST_MAX_LENGTH_REPOST = $config['post']['repost_max_length'];
+    self::$POST_MAX_LENGTH_REPOST = self::$POST_MAX_LENGTH;
+    self::$POST_SECONDS_BETWEEN_DUPLICATES = $config['post']['seconds_between_duplicates'];
+    self::$MESSAGE_MAX_LENGTH = $config['message']['max_length'];
+    self::$RAW_MAX_LENGTH = $config['raw']['max_length'];
+    self::$USER_DESCRIPTION_MAX_LENGTH = $config['user']['description_max_length'];
+    self::$USER_USERNAME_MAX_LENGTH = $config['user']['username_max_length'];
+    $this->logger->info('-----------Pnut API config-----------');
+    $this->logger->info('');
+    $this->logger->info("Max post length: ".self::$POST_MAX_LENGTH);
+    $this->logger->info("Max repost length: ".self::$POST_MAX_LENGTH_REPOST);
+    $this->logger->info("Seconds between post duplicates: ".self::$POST_SECONDS_BETWEEN_DUPLICATES);
+    $this->logger->info("Max raw length: ".self::$RAW_MAX_LENGTH);
+    $this->logger->info("Max user description length: ".self::$USER_DESCRIPTION_MAX_LENGTH);
+    $this->logger->info("Max username length: ".self::$USER_USERNAME_MAX_LENGTH);
+    $this->logger->info('--------------------------------------');
+  }
+
+  public function getMaxPostLength(): int
+  {
+    if (empty(self::$POST_MAX_LENGTH)) {
+      $this->fetchPnutSystemConfig();
+    }
+    return self::$POST_MAX_LENGTH;
+  }
+
+  public function authenticateServerToken()
+  {
+    $token = $this->getServerToken();
+    $this->server_token = $token;
+    $this->logger->info("ST:".$this->server_token);
+  }
+
+  protected function getServerToken(): string
+  {
+    $this->logger->info('Requesting server access token from pnut');
+    $params = [
+      'client_id' => $this->client_id,
+      'client_secret' => $this->client_secret,
+      'grant_type' => 'client_credentials'
+    ];
+    $resp = $this->post('oauth/access_token', $params);
+    if (!empty($resp['access_token'])) {
+      $this->logger->info(json_encode($resp));
+      return $resp['access_token'];
+    } else {
+      throw new PnutException("Error retrieving app access token: ".json_encode($resp));
+    }
   }
 }
