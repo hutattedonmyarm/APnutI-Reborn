@@ -321,8 +321,10 @@ class APnutI
     $this->logger->info(
         "Checking auth status for app: {$this->app_name}: {$log_str}"
     );
-    $this->logger->info('Referrer: '.($_SERVER['HTTP_REFERER'] ?? 'Unknown'));
-    $_SESSION[$this->token_redirect_after_auth] = $_SERVER['HTTP_REFERER'];
+    if (isset($_SERVER['HTTP_REFERER'])) {
+      $this->logger->info('Referrer: '.($_SERVER['HTTP_REFERER'] ?? 'Unknown'));
+      $_SESSION[$this->token_redirect_after_auth] = $_SERVER['HTTP_REFERER'];
+    }
     return $is_authenticated;
   }
 
