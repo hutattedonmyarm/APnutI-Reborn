@@ -66,8 +66,13 @@ class APnutI
   public static $USER_DESCRIPTION_MAX_LENGTH;
   public static $USER_USERNAME_MAX_LENGTH;
 
-  public function __construct(?string $log_path = null)
-  {
+  public function __construct(
+      ?string $client_secret = null,
+      ?string $client_id = null,
+      ?string $needed_scope = null,
+      ?string $app_name = null,
+      ?string $log_path = null
+  ) {
     $this->logger = empty($log_path) ? new NullLogger() : new Logger($this->app_name);
     $this->token_session_key = $this->app_name.'access_token';
     $this->token_redirect_after_auth = $this->app_name
@@ -81,6 +86,18 @@ class APnutI
       $this->logger->debug('Access token in session');
     } else {
       $this->logger->debug('No access token in session');
+    }
+    if (!empty($client_secret)) {
+      $this->client_secret = $client_secret;
+    }
+    if (!empty($client_id)) {
+      $this->client_id = $client_id;
+    }
+    if (!empty($needed_scope)) {
+      $this->needed_scope = $needed_scope;
+    }
+    if (!empty($app_name)) {
+      $this->app_name = $app_name;
     }
   }
 
