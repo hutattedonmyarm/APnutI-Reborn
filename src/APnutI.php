@@ -114,9 +114,9 @@ class APnutI
     // take out the headers
     // set internal variables
     // return the body/content
-    $this->rate_limit = null;
+    /*$this->rate_limit = null;
     $this->rate_limit_remaining = null;
-    $this->rate_limit_reset = null;
+    $this->rate_limit_reset = null;*/
     $this->scope = [];
     $response = explode("\r\n\r\n", $response, 2);
     $headers = $response[0];
@@ -282,7 +282,7 @@ class APnutI
       string $content_type = 'application/x-www-form-urlencoded'
   ): string {
     $method = $content_type === 'multipart/form-data' ? 'POST-RAW' : 'POST';
-    return $this->make_request($method, $end_point, $parameters, $content_type);
+    return $this->makeRequest($method, $end_point, $parameters, $content_type);
   }
 
   public function get(
