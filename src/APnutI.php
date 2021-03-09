@@ -3,6 +3,7 @@
 namespace APnutI;
 
 use APnutI\Entities\Post;
+use APnutI\Entities\Poll;
 use APnutI\Entities\User;
 use APnutI\Exceptions\PnutException;
 use APnutI\Exceptions\NotFoundException;
@@ -17,7 +18,7 @@ use Psr\Log\NullLogger;
 
 class APnutI
 {
-  protected string $api_url = 'https://api.pnut.io/v1/';
+  protected string $api_url = 'https://api.pnut.io/v1';
   protected string $auth_url = 'https://pnut.io/oauth/authenticate';
   protected string $client_secret;
   protected string $client_id;
@@ -35,6 +36,7 @@ class APnutI
   protected ?string $access_token;
   protected LoggerInterface $logger;
   protected string $token_session_key;
+  protected string $token_redirect_after_auth;
   protected ?string $server_token_file_path = null;
 
   public ?Meta $meta = null;
@@ -68,6 +70,8 @@ class APnutI
   {
     $this->logger = empty($log_path) ? new NullLogger() : new Logger($this->app_name);
     $this->token_session_key = $this->app_name.'access_token';
+    $this->token_redirect_after_auth = $this->app_name
+    .'redirect_after_auth';
     $handler = new RotatingFileHandler($log_path, 5, Logger::DEBUG, true);
     $this->logger->pushHandler($handler);
     $this->server_token = null;
@@ -297,7 +301,183 @@ class APnutI
         "Checking auth status for app: {$this->app_name}: {$log_str}"
     );
     $this->logger->info('Referrer: '.($_SERVER['HTTP_REFERER'] ?? 'Unknown'));
-    $_SESSION['redirect_after_auth'] = $_SERVER['HTTP_REFERER'];
+    $_SESSION[$this->token_redirect_after_auth] = $_SERVER['HTTP_REFERER'];
     return $is_authenticated;
+  }
+
+  public function authenticate(string $auth_code): bool
+  {
+    $this->logger->debug("Authenticating: {$auth_code}");
+    $parameters = [
+      'client_id' => $this->client_id,
+      'client_secret' => $this->client_secret,
+      'code' => $auth_code,
+      'redirect_uri' => $this->redirect_uri,
+      'grant_type'=> 'authorization_code'
+    ];
+    $resp = $this->post(
+        '/oauth/access_token',
+        $parameters,
+        'application/x-www-form-urlencoded'
+    );
+
+    if ($resp === null || !isset($resp['access_token'])) {
+      $this->logger->error("No access token ".json_encode($resp));
+      return false;
+    } else {
+      $this->logger->debug('Received access token ' . $resp['access_token']);
+      $_SESSION[$this->token_session_key] = $resp['access_token'];
+      $this->logger->debug('Saved access token');
+      $this->access_token = $resp['access_token'];
+      return true;
+    }
+  }
+
+  public function logout()
+  {
+    unset($_SESSION[$this->token_session_key]);
+    $this->access_token = null;
+  }
+
+  // TODO
+  public function getPostsForUser(User $user, $count = null)
+  {
+  }
+
+  // TODO
+  public function getPostsForUsername(string $username, int $count = 0)
+  {
+    /*
+    if(!$this->isAuthenticated()) {
+      throw new NotAuthorizedException("Cannot retrieve posts, ");
+    }
+    */
+    if (mb_substr($username, 0, 1) !== '@') {
+      $username = '@'.$username;
+    }
+    $params = [];
+    if ($count > 0) {
+      $params['count'] = $count;
+    }
+    $posts = $this->get('/users/' . $username . '/posts', $params);
+    $p = [];
+    foreach ($posts as $post) {
+      $p[] = new Post($post);
+    }
+    var_dump($p);
+  }
+
+  public function searchPosts(
+      array $args,
+      bool $order_by_id = true,
+      int $count = 0
+  ): array {
+    if ($order_by_id) {
+      $args['order'] = 'id';
+    }
+    if ($count > 0) {
+      $args['count'] = $count;
+    }
+    $post_obj = [];
+    /*
+     * Stop fetching if:
+     * - count($posts) >= $count and $count != 0
+     * - OR: meta['more'] is false
+     */
+    do {
+      $posts = $this->get('/posts/search', $args);
+      if ($this->meta->more) {
+        $args['before_id'] = $this->meta->min_id;
+      }
+      foreach ($posts as $post) {
+        $post_obj[] = new Post($post);
+      }
+    } while ($this->meta != null
+      && $this->meta->more
+      && (count($post_obj) < $count || $count !== 0));
+    return $post_obj;
+  }
+
+  // TODO Maybe support additional polls?
+  public function getPollsFromUser(int $user_id, array $params = []): array
+  {
+    $parameters = [
+      'raw_types' => 'io.pnut.core.poll-notice',
+      'creator_id' => $user_id,
+      'include_deleted' => false,
+      'include_client' => false,
+      'include_counts' => false,
+      'include_html' => false,
+      'include_mention_posts' => false,
+      'include_copy_mentions' => false,
+      'include_post_raw' => true
+    ];
+    foreach ($params as $param => $value) {
+      $parameters[$param] = $value;
+    }
+    $response = $this->get('posts/search', $parameters);
+    if (count($response) === 0) {
+      return [];
+    }
+    $polls = [];
+    foreach ($response as $post) {
+      if (!empty($post['raw'])) {
+        foreach ($post['raw'] as $raw) {
+          if (Poll::$notice_type === $raw['type']) {
+            $polls[] = $this->getPoll($raw['value']['poll_id']);
+          }
+        }
+      }
+    }
+    return $polls;
+  }
+
+  public function getPoll(int $poll_id): Poll
+  {
+    return new Poll($this->get('/polls/' . $poll_id));
+  }
+
+  public function getAuthorizedUser(): User
+  {
+    return $this->getUser('/me');
+  }
+
+  public function getUser(int $user_id, array $args = [])
+  {
+    return new User($this->get('/users/'.$user_id, $args));
+  }
+
+  public function getPost(int $post_id, array $args = [])
+  {
+    if (!empty($this->access_token)) {
+      #$this->logger->info("AT:".$this->access_token);
+    } else {
+      $this->logger->info("No AT");
+    }
+
+    // Remove in p roduction again
+    try {
+      $p = new Post($this->get('/posts/'.$post_id, $args));
+      $this->logger->debug(json_encode($p));
+      return $p;
+    } catch (NotAuthorizedException $nae) {
+      $this->logger->warning(
+          'NotAuthorizedException when getting post, trying without access token'
+      );
+      //try again not authorized
+      $r = $this->make_request(
+          '/get',
+          '/posts/' . $post_id,
+          $args,
+          'application/json',
+          true
+      );
+      return new Post($r);
+    }
+  }
+
+  public function getAvatar(int $user_id, array $args = []): string
+  {
+    return $this->get('/users/'.$user_id.'/avatar', $args);
   }
 }
