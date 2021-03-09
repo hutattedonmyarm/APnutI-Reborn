@@ -269,7 +269,7 @@ class APnutI
     } elseif (isset($response['meta'], $response['data'])) {
       return $response['data'];
     } elseif (isset($response['access_token'])) {
-      return $response;
+      return $response['access_token'];
     } elseif (!empty($this->redirect_target)) {
       return $this->redirect_target;
     } else {
