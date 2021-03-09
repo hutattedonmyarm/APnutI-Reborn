@@ -1,7 +1,7 @@
 <?php
 namespace APnutI\Exceptions;
 
-class PnutException extends Exception
+class PnutException extends \Exception
 {
 
 }

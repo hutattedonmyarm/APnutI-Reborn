@@ -1,7 +1,7 @@
 <?php
 namespace APnutI\Exceptions;
 
-class NotSupportedPollException extends Exception
+class NotSupportedPollException extends \Exception
 {
 
 }
