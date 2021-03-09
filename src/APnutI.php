@@ -212,11 +212,11 @@ class APnutI
     $effectiveURL = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
     curl_close($ch);
     if ($http_status === 0) {
-      throw new Exception('Unable to connect to Pnut ' . $url);
+      throw new \Exception('Unable to connect to Pnut ' . $url);
     }
     if ($request === false) {
       if (!curl_getinfo($ch, CURLINFO_SSL_VERIFYRESULT)) {
-          throw new Exception('SSL verification failed, connection terminated: ' . $url);
+          throw new \Exception('SSL verification failed, connection terminated: ' . $url);
       }
     }
     if (!empty($response)) {
