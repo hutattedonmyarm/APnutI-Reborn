@@ -1,6 +1,6 @@
 {
   "com.thorlaksson.phpcs.runOnChange" : "onSave",
-  "com.thorlaksson.phpcs.standard" : "\/Volumes\/Alyx\/Users\/max\/Dev\/Pnut\/Untitled\/phpcs.xml",
+  "com.thorlaksson.phpcs.standard" : "\/Volumes\/Alyx\/System\/Volumes\/Update\/mnt1\/Users\/max\/Dev\/Pnut\/APnutI\/phpcs.xml",
   "editor.default_syntax" : "php",
   "php.validate" : "onSave",
   "workspace.color" : 1,
