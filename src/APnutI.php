@@ -345,14 +345,14 @@ class APnutI
         'application/x-www-form-urlencoded'
     );
 
-    if ($resp === null || !isset($resp['access_token'])) {
+    if (empty($resp)) {
       $this->logger->error("No access token ".json_encode($resp));
       return false;
     } else {
-      $this->logger->debug('Received access token ' . $resp['access_token']);
-      $_SESSION[$this->token_session_key] = $resp['access_token'];
+      $this->logger->debug('Received access token ' . $resp);
+      $_SESSION[$this->token_session_key] = $resp;
       $this->logger->debug('Saved access token');
-      $this->access_token = $resp['access_token'];
+      $this->access_token = $resp;
       return true;
     }
   }
