@@ -71,6 +71,7 @@ class APnutI
       ?string $client_id = null,
       ?string $needed_scope = null,
       ?string $app_name = null,
+      ?string $redirect_uri = null,
       ?string $log_path = null
   ) {
     $this->logger = empty($log_path) ? new NullLogger() : new Logger($this->app_name);
@@ -95,6 +96,9 @@ class APnutI
     }
     if (!empty($needed_scope)) {
       $this->needed_scope = $needed_scope;
+    }
+    if (!empty($redirect_uri)) {
+      $this->redirect_uri = $redirect_uri;
     }
     if (!empty($app_name)) {
       $this->app_name = $app_name;
