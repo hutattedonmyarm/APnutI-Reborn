@@ -117,7 +117,8 @@ class APnutI
     /*$this->rate_limit = null;
     $this->rate_limit_remaining = null;
     $this->rate_limit_reset = null;*/
-    $this->scope = [];
+    $this->scopes = [];
+    $this->scope = '';
     $response = explode("\r\n\r\n", $response, 2);
     $headers = $response[0];
     if ($headers === 'HTTP/1.1 100 Continue') {
@@ -150,12 +151,12 @@ class APnutI
           $this->rate_limit_reset = (int)$v;
           break;
         case 'X-OAuth-Scopes':
-          $this->scope = (int)$v;
-          $this->scopes = explode(',', (int)$v);
+          $this->scope = $v;
+          $this->scopes = explode(',', $v);
           break;
         case 'location':
         case 'Location':
-          $this->redirectTarget = (int)$v;
+          $this->redirectTarget = $v;
           break;
       }
     }
