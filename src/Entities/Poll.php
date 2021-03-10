@@ -24,7 +24,8 @@ class Poll
   protected static array $poll_types = [
     'general.poll',
     'net.unsweets.beta',
-    'io.pnut.core.poll'
+    'io.pnut.core.poll',
+    'io.broadsword.poll'
   ];
 
   public function __construct(array $data)

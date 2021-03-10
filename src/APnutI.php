@@ -10,6 +10,7 @@ use APnutI\Exceptions\NotFoundException;
 use APnutI\Exceptions\NotAuthorizedException;
 use APnutI\Exceptions\HttpPnutException;
 use APnutI\Exceptions\HttpPnutRedirectException;
+use APnutI\Exceptions\NotSupportedPollException;
 use APnutI\Meta;
 use Monolog\Logger;
 use Monolog\Handler\RotatingFileHandler;
@@ -458,7 +459,13 @@ class APnutI
 
   public function getPoll(int $poll_id): Poll
   {
-    return new Poll($this->get('/polls/' . $poll_id));
+    $res = $this->get('/polls/' . $poll_id);
+    try {
+      return new Poll($res);
+    } catch (NotSupportedPollException $e) {
+      $this->logger->error('Poll not supported: '.json_encode($res));
+      throw $e;
+    }
   }
 
   public function getAuthorizedUser(): User
