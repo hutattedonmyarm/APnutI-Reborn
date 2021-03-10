@@ -295,7 +295,7 @@ class APnutI
       $end_point .= '?'.http_build_query($parameters);
       $parameters = [];
     }
-    return $this->make_request('get', $end_point, $parameters, $content_type);
+    return $this->makeRequest('get', $end_point, $parameters, $content_type);
   }
 
   public function getAuthURL()
@@ -489,7 +489,7 @@ class APnutI
           'NotAuthorizedException when getting post, trying without access token'
       );
       //try again not authorized
-      $r = $this->make_request(
+      $r = $this->makeRequest(
           '/get',
           '/posts/' . $post_id,
           $args,
