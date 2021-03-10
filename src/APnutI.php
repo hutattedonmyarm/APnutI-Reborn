@@ -168,7 +168,7 @@ class APnutI
       string $end_point,
       array $parameters,
       string $content_type = 'application/x-www-form-urlencoded'
-  ): string {
+  ): array {
 
     $this->redirect_target = null;
     $this->meta = null;
@@ -269,9 +269,9 @@ class APnutI
     } elseif (isset($response['meta'], $response['data'])) {
       return $response['data'];
     } elseif (isset($response['access_token'])) {
-      return $response['access_token'];
+      return $response;
     } elseif (!empty($this->redirect_target)) {
-      return $this->redirect_target;
+      return [$this->redirect_target];
     } else {
       throw new PnutException("No response ".json_encode($response).", http status: ${http_status}");
     }
@@ -281,7 +281,7 @@ class APnutI
       string $end_point,
       array $parameters,
       string $content_type = 'application/x-www-form-urlencoded'
-  ): string {
+  ): array {
     $method = $content_type === 'multipart/form-data' ? 'POST-RAW' : 'POST';
     return $this->makeRequest($method, $end_point, $parameters, $content_type);
   }
@@ -290,7 +290,7 @@ class APnutI
       string $end_point,
       array $parameters = [],
       string $content_type = 'application/json'
-  ): string {
+  ): array {
     if (!empty($parameters)) {
       $end_point .= '?'.http_build_query($parameters);
       $parameters = [];
@@ -345,14 +345,14 @@ class APnutI
         'application/x-www-form-urlencoded'
     );
 
-    if (empty($resp)) {
+    if (empty($resp['access_token'])) {
       $this->logger->error("No access token ".json_encode($resp));
       return false;
     } else {
-      $this->logger->debug('Received access token ' . $resp);
-      $_SESSION[$this->token_session_key] = $resp;
+      $this->logger->debug('Received access token ' . $resp['access_token']);
+      $_SESSION[$this->token_session_key] = $resp['access_token'];
       $this->logger->debug('Saved access token');
-      $this->access_token = $resp;
+      $this->access_token = $resp['access_token'];
       return true;
     }
   }
@@ -500,7 +500,7 @@ class APnutI
     }
   }
 
-  public function getAvatar(int $user_id, array $args = []): string
+  public function getAvatar(int $user_id, array $args = []): array
   {
     return $this->get('/users/'.$user_id.'/avatar', $args);
   }
