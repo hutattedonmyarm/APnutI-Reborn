@@ -223,6 +223,10 @@ class APnutI
     }
     if (!empty($response)) {
       $response = $this->parseHeaders($response);
+      if ($http_status == 302) {
+        #echo json_encode(preg_match_all('/^Location:(.*)$/mi', $response, $matches));
+        throw new HttpPnutRedirectException($response);
+      }
       if (!empty($response)) {
         $response = json_decode($response, true);
         try {
@@ -262,12 +266,7 @@ class APnutI
       }
     }
     if ($http_status < 200 || $http_status >= 300) {
-      if ($http_status == 302) {
-        #echo json_encode(preg_match_all('/^Location:(.*)$/mi', $response, $matches));
-        throw new HttpPnutRedirectException($response);
-      } else {
-        throw new HttpPnutException('HTTP error '.$http_status);
-      }
+      throw new HttpPnutException('HTTP error '.$http_status);
     } elseif (isset($response['meta'], $response['data'])) {
       return $response['data'];
     } elseif (isset($response['access_token'])) {
@@ -514,7 +513,14 @@ class APnutI
   public function getAvatar(int $user_id, array $args = []): string
   {
     //get returns an array with the url at idx 0
-    return $this->get('/users/'.$user_id.'/avatar', $args)[0];
+    $r = null;
+    try {
+      $r = $this->get('/users/'.$user_id.'/avatar', $args);
+    } catch (HttpPnutRedirectException $re) {
+      return $re->getMessage();
+    }
+    $this->logger->error('Could not fetch avatar: No redirection! ' . json_encode($r));
+    throw new PnutException('Could not fetch avatar: No redirection!');
   }
 
   public function getAvatarUrl(
@@ -530,7 +536,7 @@ class APnutI
     if (!empty($height)) {
       $args['h'] = $height;
     }
-    return $this->get('/users/'.$user_id.'/avatar', $args)[0];
+    return $this->getAvatar($user_id, $args);
   }
 
   public function updateAvatar(
