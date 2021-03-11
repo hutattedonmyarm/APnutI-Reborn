@@ -531,7 +531,7 @@ class APnutI
     try {
       $r = $this->get('/users/'.$user_id.'/avatar', $args, 'application/json', false);
     } catch (HttpPnutRedirectException $re) {
-      return $re->getMessage();
+      return $re->response;
     }
     $this->logger->error('Could not fetch avatar: No redirection! ' . json_encode($r));
     throw new PnutException('Could not fetch avatar: No redirection!');
