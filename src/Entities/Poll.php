@@ -3,6 +3,7 @@ namespace APnutI\Entities;
 
 use APnutI\Entities\PollOption;
 use APnutI\Entities\User;
+use APnutI\Entities\APnutI;
 use APnutI\Entities\Source;
 use APnutI\Exceptions\NotSupportedPollException;
 
@@ -20,6 +21,8 @@ class Poll
   public ?Source $source = null;
   public string $type;
 
+  private APnutI $api;
+
   public static string $notice_type = 'io.pnut.core.poll-notice';
   protected static array $poll_types = [
     'general.poll',
@@ -29,8 +32,9 @@ class Poll
     'nl.chimpnut.quizbot.attachment.poll'
   ];
 
-  public function __construct(array $data)
+  public function __construct(array $data, APnutI $api)
   {
+    $this->api = $api;
     $this->options = [];
     $this->type = $data['type'];
     if ($data['type'] === Poll::$notice_type) {

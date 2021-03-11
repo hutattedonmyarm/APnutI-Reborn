@@ -401,7 +401,7 @@ class APnutI
     $posts = $this->get('/users/' . $username . '/posts', $params);
     $p = [];
     foreach ($posts as $post) {
-      $p[] = new Post($post);
+      $p[] = new Post($post, $this);
     }
     var_dump($p);
   }
@@ -429,7 +429,7 @@ class APnutI
         $args['before_id'] = $this->meta->min_id;
       }
       foreach ($posts as $post) {
-        $post_obj[] = new Post($post);
+        $post_obj[] = new Post($post, $this);
       }
     } while ($this->meta != null
       && $this->meta->more
@@ -475,7 +475,7 @@ class APnutI
   {
     try {
       $res = $this->get('/polls/' . $poll_id);
-      return new Poll($res);
+      return new Poll($res, $this);
     } catch (NotSupportedPollException $e) {
       $this->logger->error('Poll not supported: '.json_encode($res));
       throw $e;
@@ -492,7 +492,7 @@ class APnutI
 
   public function getUser(int $user_id, array $args = [])
   {
-    return new User($this->get('/users/'.$user_id, $args));
+    return new User($this->get('/users/'.$user_id, $args), $this);
   }
 
   public function getPost(int $post_id, array $args = [])
@@ -505,7 +505,7 @@ class APnutI
 
     // Remove in production again
     try {
-      $p = new Post($this->get('/posts/'.$post_id, $args));
+      $p = new Post($this->get('/posts/'.$post_id, $args), $this);
       $this->logger->debug(json_encode($p));
       return $p;
     } catch (NotAuthorizedException $nae) {
@@ -520,7 +520,7 @@ class APnutI
           'application/json',
           true
       );
-      return new Post($r);
+      return new Post($r, $this);
     }
   }
 
@@ -568,7 +568,8 @@ class APnutI
     $cf = new \CURLFile($file_path, $content_type, $filename);
     $parameters = ['avatar' => $cf];
     return new User(
-        $this->post('/users/me/avatar', $parameters, 'multipart/form-data')
+        $this->post('/users/me/avatar', $parameters, 'multipart/form-data'),
+        $this
     );
   }
 
@@ -601,7 +602,7 @@ class APnutI
       'reply_to' => $reply_to,
       'is_nsfw' => $is_nsfw,
     ];
-    return new Post($this->post('posts', $parameters));
+    return new Post($this->post('posts', $parameters), $this);
   }
 
   protected function fetchPnutSystemConfig()

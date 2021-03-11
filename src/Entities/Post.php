@@ -3,6 +3,7 @@ namespace APnutI\Entities;
 
 use APnutI\Entities\User;
 use APnutI\Entities\Source;
+use APnutI\Entities\APnutI;
 use APnutI\Entities\PostCounts;
 use APnutI\Entities\PostContent;
 
@@ -24,8 +25,11 @@ class Post
   public bool $you_bookmarked = false;
   public bool $you_reposted = false;
 
-  public function __construct(array $data)
+  private APnutI $api;
+
+  public function __construct(array $data, APnutI $api)
   {
+    $this->api = $api;
     $this->created_at = new \DateTime($data['created_at']);
     $this->id = (int)$data['id'];
     if (!empty($data['is_deleted'])) {

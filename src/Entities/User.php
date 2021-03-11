@@ -3,6 +3,7 @@ namespace APnutI\Entities;
 
 use APnutI\Entities\Image;
 use APnutI\Entities\Badge;
+use APnutI\Entities\APnutI;
 
 class User
 {
@@ -13,11 +14,13 @@ class User
   public string $username;
   public ?string $name = null;
   public ?bool $presence = null;
-  #private LoggerInterface $log;
 
-  public function __construct(array $data)
+
+  private APnutI $api;
+
+  public function __construct(array $data, APnutI $api)
   {
-    #$this->log = new Logger('User');
+    $this->api = $api;
     $this->id = (int)$data['id'];
     $this->username = $data['username'];
     if (!empty($data['badge'])) {
@@ -49,14 +52,19 @@ class User
     }
   }
 
-  public function getPresenceString(): string
-  {
-    if ($this->presence === true) {
-      return "online";
-    } elseif ($this->presence === false) {
-      return "offline";
-    } else {
-      return "presence unknown";
+  public function getAvatarUrl(
+      ?int $width = null,
+      ?int $height = null
+  ): string {
+    if (empty($this->avatar_image)) {
+      return $this->api->getAvatarUrl($this->id, $width, $height);
     }
+    $query = '';
+    if (!empty($width)) {
+      $query = '?w='.$width;
+    } elseif (!empty($height)) {
+      $query = '?h='.$height;
+    }
+    return $this->avatar_image->link.$query;
   }
 }
