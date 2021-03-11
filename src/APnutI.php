@@ -467,7 +467,7 @@ class APnutI
       $this->logger->error('Poll not supported: '.json_encode($res));
       throw $e;
     } catch (HttpPnutForbiddenException $fe) {
-      $this->logger->error('Poll token required and not provided!: '.json_encode($res));
+      $this->logger->error('Poll token required and not provided!');
       throw $fe;
     }
   }
