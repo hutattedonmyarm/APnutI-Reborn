@@ -5,6 +5,7 @@ namespace APnutI;
 use APnutI\Exceptions\PnutException;
 use APnutI\Exceptions\NotAuthorizedException;
 use APnutI\Exceptions\NotFoundException;
+use APnutI\Exceptions\HttpPnutForbiddenException;
 
 class Meta
 {
@@ -34,6 +35,9 @@ class Meta
         throw new PnutException($meta['error_message']);
       }if ($this->code === 401) {
         throw new NotAuthorizedException($meta['error_message']);
+      }
+      if ($this->code === 403) {
+        throw new HttpPnutForbiddenException();
       }
       if ($this->code === 404) {
         throw new NotFoundException();

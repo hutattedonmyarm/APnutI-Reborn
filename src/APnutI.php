@@ -11,6 +11,7 @@ use APnutI\Exceptions\NotAuthorizedException;
 use APnutI\Exceptions\HttpPnutException;
 use APnutI\Exceptions\HttpPnutRedirectException;
 use APnutI\Exceptions\NotSupportedPollException;
+use APnutI\Exceptions\HttpPnutForbiddenException;
 use APnutI\Meta;
 use Monolog\Logger;
 use Monolog\Handler\RotatingFileHandler;
@@ -239,7 +240,7 @@ class APnutI
           $response_headers_string = print_r($this->headers, true);
           $request_headers_string = print_r($headers, true);
           $parameters_string = print_r($parameters, true);
-          $this->logger->error("Error, no authorized: {$pe->getMessage()}");
+          $this->logger->error("Error: {$pe->getMessage()}");
           $this->logger->error("Method: {$method}");
           $this->logger->error("Parameters: {$parameters_string}");
           $this->logger->error("Request headers: {$request_headers_string}");
@@ -459,12 +460,15 @@ class APnutI
 
   public function getPoll(int $poll_id): Poll
   {
-    $res = $this->get('/polls/' . $poll_id);
     try {
+      $res = $this->get('/polls/' . $poll_id);
       return new Poll($res);
     } catch (NotSupportedPollException $e) {
       $this->logger->error('Poll not supported: '.json_encode($res));
       throw $e;
+    } catch (HttpPnutForbiddenException $fe) {
+      $this->logger->error('Poll token required and not provided!: '.json_encode($res));
+      throw $fe;
     }
   }
 
