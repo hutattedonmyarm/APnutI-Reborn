@@ -158,6 +158,12 @@ class APnutI
               break;
         case 'location':
         case 'Location':
+          $this->logger->debug(
+              'Is redirect. Headers: '.json_encode($this->headers)
+          );
+          $this->logger->debug(
+              'Is redirect. Target: '. $v
+          );
           $this->redirect_target = $v;
               break;
       }
@@ -169,7 +175,8 @@ class APnutI
       string $method,
       string $end_point,
       array $parameters,
-      string $content_type = 'application/x-www-form-urlencoded'
+      string $content_type = 'application/x-www-form-urlencoded',
+      bool $follow_redirect = true
   ): array {
 
     $this->redirect_target = null;
@@ -207,7 +214,7 @@ class APnutI
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLINFO_HEADER_OUT, true);
     curl_setopt($ch, CURLOPT_HEADER, true);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $follow_redirect);
     $response = curl_exec($ch);
     $request = curl_getinfo($ch, CURLINFO_HEADER_OUT);
     $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -231,6 +238,7 @@ class APnutI
       if (!empty($response)) {
         $response = json_decode($response, true);
         if ($response === null && !empty($this->redirect_target)) {
+          $this->logger->debug("Redirect to {$this->redirect_target}");
           throw new HttpPnutRedirectException($this->redirect_target);
         }
         try {
@@ -294,13 +302,14 @@ class APnutI
   public function get(
       string $end_point,
       array $parameters = [],
-      string $content_type = 'application/json'
+      string $content_type = 'application/json',
+      bool $follow_redirect = true
   ): array {
     if (!empty($parameters)) {
       $end_point .= '?'.http_build_query($parameters);
       $parameters = [];
     }
-    return $this->makeRequest('get', $end_point, $parameters, $content_type);
+    return $this->makeRequest('get', $end_point, $parameters, $content_type, $follow_redirect);
   }
 
   public function getAuthURL()
@@ -519,7 +528,7 @@ class APnutI
     //get returns an array with the url at idx 0
     $r = null;
     try {
-      $r = $this->get('/users/'.$user_id.'/avatar', $args);
+      $r = $this->get('/users/'.$user_id.'/avatar', $args, 'application/json', false);
     } catch (HttpPnutRedirectException $re) {
       return $re->getMessage();
     }
