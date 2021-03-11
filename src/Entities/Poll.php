@@ -75,7 +75,7 @@ class Poll
     }
     $this->prompt = $data['prompt'];
     if (!empty($data['user'])) {
-      $this->user = new User($data['user']);
+      $this->user = new User($data['user'], $this->api);
     }
     if (!empty($data['source'])) {
       $this->source = new Source($data['source']);
