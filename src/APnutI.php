@@ -145,21 +145,21 @@ class APnutI
       switch ($k) {
         case 'X-RateLimit-Remaining':
           $this->rate_limit_remaining = (int)$v;
-          break;
+              break;
         case 'X-RateLimit-Limit':
           $this->rate_limit = (int)$v;
-          break;
+              break;
         case 'X-RateLimit-Reset':
           $this->rate_limit_reset = (int)$v;
-          break;
+              break;
         case 'X-OAuth-Scopes':
           $this->scope = $v;
           $this->scopes = explode(',', $v);
-          break;
+              break;
         case 'location':
         case 'Location':
           $this->redirectTarget = $v;
-          break;
+              break;
       }
     }
     return $content;
