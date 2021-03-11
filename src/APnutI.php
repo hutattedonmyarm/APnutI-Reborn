@@ -213,6 +213,7 @@ class APnutI
     $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $effectiveURL = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
     curl_close($ch);
+    $this->logger->debug("{$method} Request to {$url}. Received status: {$http_status}. Response: {$response}");
     if ($http_status === 0) {
       throw new \Exception('Unable to connect to Pnut ' . $url);
     }
@@ -221,12 +222,12 @@ class APnutI
           throw new \Exception('SSL verification failed, connection terminated: ' . $url);
       }
     }
+    if ($http_status == 302) {
+      #echo json_encode(preg_match_all('/^Location:(.*)$/mi', $response, $matches));
+      throw new HttpPnutRedirectException($response);
+    }
     if (!empty($response)) {
       $response = $this->parseHeaders($response);
-      if ($http_status == 302) {
-        #echo json_encode(preg_match_all('/^Location:(.*)$/mi', $response, $matches));
-        throw new HttpPnutRedirectException($response);
-      }
       if (!empty($response)) {
         $response = json_decode($response, true);
         try {
