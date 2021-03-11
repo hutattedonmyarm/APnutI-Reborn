@@ -229,12 +229,13 @@ class APnutI
           throw new \Exception('SSL verification failed, connection terminated: ' . $url);
       }
     }
-    if ($http_status == 302) {
-      #echo json_encode(preg_match_all('/^Location:(.*)$/mi', $response, $matches));
-      throw new HttpPnutRedirectException($response);
-    }
     if (!empty($response)) {
       $response = $this->parseHeaders($response);
+      if ($http_status == 302) {
+        #echo json_encode(preg_match_all('/^Location:(.*)$/mi', $response, $matches));
+        $this->logger->debug("302 Redirect to {$this->redirect_target}");
+        throw new HttpPnutRedirectException($this->redirect_targe);
+      }
       if (!empty($response)) {
         $response = json_decode($response, true);
         if ($response === null && !empty($this->redirect_target)) {
