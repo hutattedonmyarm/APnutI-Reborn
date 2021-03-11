@@ -25,7 +25,8 @@ class Poll
     'general.poll',
     'net.unsweets.beta',
     'io.pnut.core.poll',
-    'io.broadsword.poll'
+    'io.broadsword.poll',
+    'nl.chimpnut.quizbot.attachment.poll'
   ];
 
   public function __construct(array $data)
@@ -42,26 +43,38 @@ class Poll
       $this->token = $val['poll_token'];
       $this->prompt = $val['prompt'];
     } elseif (in_array($data['type'], Poll::$poll_types)) {
-      $this->created_at = new \DateTime($data['created_at']);
-      $this->closed_at = new \DateTime($data['closed_at']);
-      $this->id = (int)$data['id'];
-      $this->is_anonymous = (bool)$data['is_anonymous'];
-      $this->is_public = (bool)$data['is_public'];
-      foreach ($data['options'] as $option) {
-        $this->options[] = new PollOption($option);
-      }
-      if (!empty($data['poll_token'])) {
-        $this->token = $data['poll_token'];
-      }
-      $this->prompt = $data['prompt'];
-      if (!empty($data['user'])) {
-        $this->user = new User($data['user']);
-      }
-      if (!empty($data['source'])) {
-        $this->source = new Source($data['source']);
+      $this->parsePoll($data);
+    } elseif (strpos($data['type'], '.poll') !== false) {
+      // Try parsing unknown types if they *might* be a poll
+      try {
+        $this->parsePoll($data);
+      } catch (\Exception $e) {
+        throw new NotSupportedPollException($data['type']);
       }
     } else {
       throw new NotSupportedPollException($data['type']);
+    }
+  }
+
+  private function parsePoll(array $data)
+  {
+    $this->created_at = new \DateTime($data['created_at']);
+    $this->closed_at = new \DateTime($data['closed_at']);
+    $this->id = (int)$data['id'];
+    $this->is_anonymous = (bool)$data['is_anonymous'];
+    $this->is_public = (bool)$data['is_public'];
+    foreach ($data['options'] as $option) {
+      $this->options[] = new PollOption($option);
+    }
+    if (!empty($data['poll_token'])) {
+      $this->token = $data['poll_token'];
+    }
+    $this->prompt = $data['prompt'];
+    if (!empty($data['user'])) {
+      $this->user = new User($data['user']);
+    }
+    if (!empty($data['source'])) {
+      $this->source = new Source($data['source']);
     }
   }
 

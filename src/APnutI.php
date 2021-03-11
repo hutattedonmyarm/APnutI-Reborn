@@ -511,9 +511,26 @@ class APnutI
     }
   }
 
-  public function getAvatar(int $user_id, array $args = []): array
+  public function getAvatar(int $user_id, array $args = []): string
   {
-    return $this->get('/users/'.$user_id.'/avatar', $args);
+    //get returns an array with the url at idx 0
+    return $this->get('/users/'.$user_id.'/avatar', $args)[0];
+  }
+
+  public function getAvatarUrl(
+      int $user_id,
+      ?int $width = null,
+      ?int $height = null
+  ): string {
+    //get returns an array with the url at idx 0
+    $args = [];
+    if (!empty($width)) {
+      $args['w'] = $width;
+    }
+    if (!empty($height)) {
+      $args['h'] = $height;
+    }
+    return $this->get('/users/'.$user_id.'/avatar', $args)[0];
   }
 
   public function updateAvatar(
