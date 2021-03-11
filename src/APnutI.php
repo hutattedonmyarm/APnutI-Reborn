@@ -487,7 +487,7 @@ class APnutI
 
   public function getAuthorizedUser(): User
   {
-    return $this->getUser('/me');
+    return new User($this->get('/users/me'), $this);
   }
 
   public function getUser(int $user_id, array $args = [])
