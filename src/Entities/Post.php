@@ -3,7 +3,7 @@ namespace APnutI\Entities;
 
 use APnutI\Entities\User;
 use APnutI\Entities\Source;
-use APnutI\Entities\APnutI;
+use APnutI\APnutI;
 use APnutI\Entities\PostCounts;
 use APnutI\Entities\PostContent;
 

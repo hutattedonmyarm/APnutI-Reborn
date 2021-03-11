@@ -3,7 +3,7 @@ namespace APnutI\Entities;
 
 use APnutI\Entities\PollOption;
 use APnutI\Entities\User;
-use APnutI\Entities\APnutI;
+use APnutI\APnutI;
 use APnutI\Entities\Source;
 use APnutI\Exceptions\NotSupportedPollException;
 

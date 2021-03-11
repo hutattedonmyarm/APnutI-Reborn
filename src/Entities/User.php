@@ -3,7 +3,7 @@ namespace APnutI\Entities;
 
 use APnutI\Entities\Image;
 use APnutI\Entities\Badge;
-use APnutI\Entities\APnutI;
+use APnutI\APnutI;
 
 class User
 {
