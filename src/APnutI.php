@@ -234,7 +234,7 @@ class APnutI
       if ($http_status == 302) {
         #echo json_encode(preg_match_all('/^Location:(.*)$/mi', $response, $matches));
         $this->logger->debug("302 Redirect to {$this->redirect_target}");
-        throw new HttpPnutRedirectException($this->redirect_targe);
+        throw new HttpPnutRedirectException($this->redirect_target);
       }
       if (!empty($response)) {
         $response = json_decode($response, true);
