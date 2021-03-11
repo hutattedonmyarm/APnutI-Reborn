@@ -158,7 +158,7 @@ class APnutI
               break;
         case 'location':
         case 'Location':
-          $this->redirectTarget = $v;
+          $this->redirect_target = $v;
               break;
       }
     }
@@ -230,6 +230,9 @@ class APnutI
       $response = $this->parseHeaders($response);
       if (!empty($response)) {
         $response = json_decode($response, true);
+        if ($response === null && !empty($this->redirect_target)) {
+          throw new HttpPnutRedirectException($this->redirect_target);
+        }
         try {
           $this->meta = new Meta($response);
         } catch (NotAuthorizedException $nae) {
