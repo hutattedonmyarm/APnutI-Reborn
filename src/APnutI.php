@@ -34,7 +34,6 @@ class APnutI
   protected ?string $needed_scope;
   protected ?string $redirect_target = null;
   protected array $headers = [];
-  protected string $app_name = 'Abstract API';
   protected ?string $server_token;
   protected ?string $access_token;
   protected LoggerInterface $logger;
@@ -45,6 +44,7 @@ class APnutI
   protected ?User $current_user = null;
 
   public ?Meta $meta = null;
+  public string $app_name = 'Abstract API';
 
   /*
    * Error codes:
@@ -83,7 +83,7 @@ class APnutI
     if (empty($log_level)) {
       $log_level = Logger::INFO;
     } elseif (is_string($log_level)) {
-      $log_level = constant('Logger::'.$log_level);
+      $log_level = constant('Monolog\Logger::'.$log_level);
     }
     $this->logger = empty($log_path) ? new NullLogger() : new Logger($this->app_name);
     $this->token_session_key = $this->app_name.'access_token';
