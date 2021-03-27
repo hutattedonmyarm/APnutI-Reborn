@@ -42,6 +42,8 @@ class APnutI
   protected string $token_redirect_after_auth;
   protected ?string $server_token_file_path = null;
 
+  protected ?User $current_user = null;
+
   public ?Meta $meta = null;
 
   /*
@@ -383,6 +385,7 @@ class APnutI
   {
     unset($_SESSION[$this->token_session_key]);
     $this->access_token = null;
+    $this->current_user = null;
   }
 
   // TODO
@@ -539,7 +542,8 @@ class APnutI
 
   public function getAuthorizedUser(): User
   {
-    return new User($this->get('/users/me'), $this);
+    $this->current_user ??= new User($this->get('/users/me'), $this);
+    return $this->current_user;
   }
 
   public function getUser(int $user_id, array $args = [])
