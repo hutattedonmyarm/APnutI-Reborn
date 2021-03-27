@@ -125,8 +125,12 @@ class Poll
   public function canVote()
   {
     $is_authenticated = $this->api->isAuthenticated(false, true);
-    $is_closed = $this->closed_at <= new \DateTime();
-    return $is_authenticated && !$is_closed;
+    return $is_authenticated && !$this->isClosed();
+  }
+
+  public function isClosed()
+  {
+    return $this->closed_at <= new \DateTime();
   }
 
   public function __toString(): string
