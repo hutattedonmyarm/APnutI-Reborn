@@ -491,8 +491,13 @@ class APnutI
   public function getPollFromToken(int $poll_id, ?string $poll_token = null): Poll
   {
     $poll_token_query = empty($poll_token) ? '' : '?poll_token=' . $poll_token;
-    $res = $this->get('/polls/' . $poll_id . $poll_token_query);
-    return $this->getPollFromResponse($res);
+    try {
+      $res = $this->get('/polls/' . $poll_id . $poll_token_query);
+      return $this->getPollFromResponse($res);
+    } catch (NotAuthorizedException $nauth) {
+      $this->logger->error('Not authorized when fetching poll');
+      throw new PollAccessRestrictedException();
+    }
   }
 
   public function getPoll(int $poll_id, ?string $poll_token = null): Poll
@@ -513,8 +518,13 @@ class APnutI
         'include_html' => false,
         'include_post_raw' => true
       ];
-      $res = $this->get('/posts/' . $post_id, $args);
-      return $this->getPollFromResponse($res);
+      try {
+        $res = $this->get('/posts/' . $post_id, $args);
+        return $this->getPollFromResponse($res);
+      } catch (NotAuthorizedException $nauth) {
+        $this->logger->error('Not authorized when fetching poll');
+        throw new PollAccessRestrictedException();
+      }
     } else {
       $this->logger->debug('Poll token seems to be an actual poll token');
       return $this->getPollFromToken($poll_id, $poll_token);
