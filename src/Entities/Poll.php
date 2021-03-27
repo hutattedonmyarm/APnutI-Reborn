@@ -122,6 +122,13 @@ class Poll
     return $type === Poll::$notice_type || in_array($type, Poll::$poll_types);
   }
 
+  public function canVote()
+  {
+    $is_authenticated = $this->api->isAuthenticated(false, true);
+    $is_closed = $this->closed_at >= new \DateTime();
+    return $is_authenticated && !$is_closed;
+  }
+
   public function __toString(): string
   {
     if (!empty($this->user)) {

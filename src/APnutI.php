@@ -328,7 +328,7 @@ class APnutI
   }
 
   //TODO: Ping server and validate token
-  public function isAuthenticated(bool $allow_server_token = false): bool
+  public function isAuthenticated(bool $allow_server_token = false, bool $skip_verify_token = false): bool
   {
     $is_authenticated = ($allow_server_token && !empty($this->server_token))
       || isset($this->access_token);
