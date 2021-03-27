@@ -75,13 +75,19 @@ class APnutI
       ?string $needed_scope = null,
       ?string $app_name = null,
       ?string $redirect_uri = null,
-      ?string $log_path = null
+      ?string $log_path = null,
+      $log_level = null
   ) {
+    if (empty($log_level)) {
+      $log_level = Logger::INFO;
+    } elseif (is_string($log_level)) {
+      $log_level = constant('Logger::'.$log_level);
+    }
     $this->logger = empty($log_path) ? new NullLogger() : new Logger($this->app_name);
     $this->token_session_key = $this->app_name.'access_token';
     $this->token_redirect_after_auth = $this->app_name
     .'redirect_after_auth';
-    $handler = new RotatingFileHandler($log_path, 5, Logger::DEBUG, true);
+    $handler = new RotatingFileHandler($log_path, 5, $log_level, true);
     $this->logger->pushHandler($handler);
     $this->server_token = null;
     $this->logger->debug('__construct API');
