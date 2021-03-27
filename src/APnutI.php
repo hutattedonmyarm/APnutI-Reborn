@@ -12,6 +12,7 @@ use APnutI\Exceptions\HttpPnutException;
 use APnutI\Exceptions\HttpPnutRedirectException;
 use APnutI\Exceptions\NotSupportedPollException;
 use APnutI\Exceptions\HttpPnutForbiddenException;
+use APnutI\Exceptions\PollAccessRestrictedException;
 use APnutI\Meta;
 use Monolog\Logger;
 use Monolog\Handler\RotatingFileHandler;
@@ -471,17 +472,52 @@ class APnutI
     return $polls;
   }
 
-  public function getPoll(int $poll_id): Poll
+  private function getPollFromResponse(array $res): Poll
   {
     try {
-      $res = $this->get('/polls/' . $poll_id);
       return new Poll($res, $this);
     } catch (NotSupportedPollException $e) {
       $this->logger->error('Poll not supported: '.json_encode($res));
       throw $e;
     } catch (HttpPnutForbiddenException $fe) {
       $this->logger->error('Poll token required and not provided!');
-      throw $fe;
+      throw new PollAccessRestrictedException();
+    } catch (NotAuthorizedException $nauth) {
+      $this->logger->error('Not authorized when fetching poll');
+      throw new PollAccessRestrictedException();
+    }
+  }
+
+  public function getPollFromToken(int $poll_id, ?string $poll_token = null): Poll
+  {
+    $poll_token_query = empty($poll_token) ? '' : '?poll_token=' . $poll_token;
+    $res = $this->get('/polls/' . $poll_id . $poll_token_query);
+    return $this->getPollFromResponse($res);
+  }
+
+  public function getPoll(int $poll_id, ?string $poll_token = null): Poll
+  {
+    if (empty($poll_token)) {
+      return $this->getPollFromToken($poll_id, $poll_token);
+    }
+
+    $this->logger->debug('Poll token provided');
+    $re = '/((http(s)?:\/\/)?((posts)|(beta))\.pnut\.io\/(@.*\/)?)?(?(1)|^)(?<postid>\d+)/';
+    preg_match($re, $poll_token, $matches);
+    if (!empty($matches['postid'])) {
+      $this->logger->debug('Poll token is post ' . $matches['postid']);
+      $post_id = (int)$matches['postid'];
+      $args = [
+        'include_raw' => true,
+        'include_counts' => false,
+        'include_html' => false,
+        'include_post_raw' => true
+      ];
+      $res = $this->get('/posts/' . $post_id, $args);
+      return $this->getPollFromResponse($res);
+    } else {
+      $this->logger->debug('Poll token seems to be an actual poll token');
+      return $this->getPollFromToken($poll_id, $poll_token);
     }
   }
 

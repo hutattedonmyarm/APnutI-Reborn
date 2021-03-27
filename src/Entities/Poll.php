@@ -36,8 +36,8 @@ class Poll
   {
     $this->api = $api;
     $this->options = [];
-    $this->type = $data['type'];
-    if ($data['type'] === Poll::$notice_type) {
+    $type = '';
+    if (array_key_exists('type', $data) && $data['type'] === Poll::$notice_type) {
       $val = $data['value'];
       $this->closed_at = new \DateTime($val['closed_at']);
       foreach ($val['options'] as $option) {
@@ -46,18 +46,29 @@ class Poll
       $this->id = (int)$val['poll_id'];
       $this->token = $val['poll_token'];
       $this->prompt = $val['prompt'];
-    } elseif (in_array($data['type'], Poll::$poll_types)) {
+    } elseif (array_key_exists('type', $data) &&in_array($data['type'], Poll::$poll_types)) {
       $this->parsePoll($data);
-    } elseif (strpos($data['type'], '.poll') !== false) {
+    } elseif (array_key_exists('type', $data) &&strpos($data['type'], '.poll') !== false) {
       // Try parsing unknown types if they *might* be a poll
       try {
         $this->parsePoll($data);
       } catch (\Exception $e) {
         throw new NotSupportedPollException($data['type']);
       }
+    } elseif (array_key_exists('raw', $data) && #Polls included in posts
+      array_key_exists(Poll::$notice_type, $data['raw']) &&
+      count($data['raw'][Poll::$notice_type]) > 0
+    ) {
+      $poll_data = $data['raw'][Poll::$notice_type][0];
+      if (!empty($data['source'])) { #Source is attached to post, not to poll raw
+        $poll_data['source'] = $data['source'];
+      }
+      $type = Poll::$notice_type;
+      $this->parsePoll($poll_data);
     } else {
       throw new NotSupportedPollException($data['type']);
     }
+    $this->type = empty($type) ? $data['type'] : $type;
   }
 
   private function parsePoll(array $data)
@@ -65,8 +76,8 @@ class Poll
     $this->created_at = new \DateTime($data['created_at']);
     $this->closed_at = new \DateTime($data['closed_at']);
     $this->id = (int)$data['id'];
-    $this->is_anonymous = (bool)$data['is_anonymous'];
-    $this->is_public = (bool)$data['is_public'];
+    $this->is_anonymous = array_key_exists('is_anonymous', $data) ? (bool)$data['is_anonymous'] : false;
+    $this->is_public = array_key_exists('is_public', $data) ? (bool)$data['is_public'] : false;
     foreach ($data['options'] as $option) {
       $this->options[] = new PollOption($option);
     }
