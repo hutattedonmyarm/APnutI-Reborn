@@ -12,6 +12,7 @@ class Poll
   public \DateTime $created_at;
   public \DateTime $closed_at;
   public int $id = 0;
+  public int $max_options = 0;
   public bool $is_anonymous = false;
   public bool $is_public = false;
   public array $options = [];
@@ -77,6 +78,7 @@ class Poll
     $this->closed_at = new \DateTime($data['closed_at']);
     $this->id = (int)$data['id'];
     $this->is_anonymous = array_key_exists('is_anonymous', $data) ? (bool)$data['is_anonymous'] : false;
+    $this->max_options = array_key_exists('max_options', $data) ? (int)$data['max_options'] : 1;
     $this->is_public = array_key_exists('is_public', $data) ? (bool)$data['is_public'] : false;
     foreach ($data['options'] as $option) {
       $this->options[] = new PollOption($option);
@@ -111,6 +113,16 @@ class Poll
         $most_voted_option = $option;
         $optns[] = $option;
       } elseif ($option->greaterThanOrSame($most_voted_option)) {
+        $optns[] = $option;
+      }
+    }
+    return $optns;
+  }
+
+  public function getMyVotes(): array {
+    $optns = [];
+    foreach ($this->options as $option) {
+      if ($option->is_your_response) {
         $optns[] = $option;
       }
     }

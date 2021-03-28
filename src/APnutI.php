@@ -481,9 +481,10 @@ class APnutI
     return $polls;
   }
 
-  private function getPollFromResponse(array $res): Poll
+  private function getPollFromEndpoint(string $endpoint, array $args = []): Poll
   {
     try {
+      $res = $this->get($endpoint, $args);
       return new Poll($res, $this);
     } catch (NotSupportedPollException $e) {
       $this->logger->error('Poll not supported: '.json_encode($res));
@@ -500,13 +501,7 @@ class APnutI
   public function getPollFromToken(int $poll_id, ?string $poll_token = null): Poll
   {
     $poll_token_query = empty($poll_token) ? '' : '?poll_token=' . $poll_token;
-    try {
-      $res = $this->get('/polls/' . $poll_id . $poll_token_query);
-      return $this->getPollFromResponse($res);
-    } catch (NotAuthorizedException $nauth) {
-      $this->logger->error('Not authorized when fetching poll');
-      throw new PollAccessRestrictedException();
-    }
+    return $this->getPollFromEndpoint('/polls/' . $poll_id . $poll_token_query);
   }
 
   public function getPoll(int $poll_id, ?string $poll_token = null): Poll
@@ -527,13 +522,7 @@ class APnutI
         'include_html' => false,
         'include_post_raw' => true
       ];
-      try {
-        $res = $this->get('/posts/' . $post_id, $args);
-        return $this->getPollFromResponse($res);
-      } catch (NotAuthorizedException $nauth) {
-        $this->logger->error('Not authorized when fetching poll');
-        throw new PollAccessRestrictedException();
-      }
+      return $this->getPollFromEndpoint('/posts/' . $post_id, $arg);
     } else {
       $this->logger->debug('Poll token seems to be an actual poll token');
       return $this->getPollFromToken($poll_id, $poll_token);
