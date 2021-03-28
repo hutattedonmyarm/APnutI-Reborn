@@ -200,7 +200,7 @@ class APnutI
       // if they passed an array, build a list of parameters from it
       curl_setopt($ch, CURLOPT_POST, true);
       if (is_array($parameters) && $method !== 'POST-RAW') {
-        $parameters = http_build_query($parameters);
+        $parameters = $content_type === 'application/json' ? json_encode($parameters) : http_build_query($parameters);
       }
       curl_setopt($ch, CURLOPT_POSTFIELDS, $parameters);
       $headers[] = "Content-Type: ".$content_type;
@@ -217,8 +217,7 @@ class APnutI
       $this->logger->info("Using server token for auth");
       $headers[] = 'Authorization: Bearer '.$this->server_token;
     }
-    #$this->logger->info("Access token: ".$this->access_token);
-    #$this->logger->info("Headers: ".json_encode($headers));
+
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLINFO_HEADER_OUT, true);
@@ -527,6 +526,25 @@ class APnutI
       $this->logger->debug('Poll token seems to be an actual poll token');
       return $this->getPollFromToken($poll_id, $poll_token);
     }
+  }
+
+  public function voteInPoll(int $poll_id, array $options, ?string $poll_token): Poll
+  {
+    $params = [
+      'positions' => $options
+    ];
+    if (!empty($poll_token)) {
+      $params['poll_token'] = $poll_token;
+    }
+    $this->logger->debug(json_encode($params));
+    $resp = $this->makeRequest(
+        'PUT',
+        "/polls/$poll_id/response",
+        $params,
+        'application/json'
+    );
+    #TODO: Use getPollFromEndpoint
+    return new Poll($resp, $this);
   }
 
   public function getAuthorizedUser(): User

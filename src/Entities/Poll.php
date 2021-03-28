@@ -119,7 +119,8 @@ class Poll
     return $optns;
   }
 
-  public function getMyVotes(): array {
+  public function getMyVotes(): array
+  {
     $optns = [];
     foreach ($this->options as $option) {
       if ($option->is_your_response) {
@@ -143,6 +144,11 @@ class Poll
   public function isClosed()
   {
     return $this->closed_at <= new \DateTime();
+  }
+
+  public function vote(array $options): Poll
+  {
+    return $this-api->voteInPoll($this->id, $options, $this->token);
   }
 
   public function __toString(): string
