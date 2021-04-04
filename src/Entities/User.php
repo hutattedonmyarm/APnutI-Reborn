@@ -67,4 +67,16 @@ class User
     }
     return $this->avatar_image->link.$query;
   }
+
+  public function getProfileLink(?string $display_name = null): string
+  {
+    $display_name ??= $this->username;
+    return User::getProfileLinkForUsername($this->username, $display_name);
+  }
+
+  public static function getProfileLinkForUsername(string $username, ?string $display_name = null): string
+  {
+    $display_name ??= $username;
+    return '<a href="https://pnut.io/'.$username.'">'.$username.'</a>';
+  }
 }
