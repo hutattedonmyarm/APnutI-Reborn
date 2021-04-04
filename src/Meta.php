@@ -33,7 +33,8 @@ class Meta
       $this->code = $meta['code'];
       if ($this->code === 400) {
         throw new PnutException($meta['error_message']);
-      }if ($this->code === 401) {
+      }
+      if ($this->code === 401) {
         throw new NotAuthorizedException($meta['error_message']);
       }
       if ($this->code === 403) {

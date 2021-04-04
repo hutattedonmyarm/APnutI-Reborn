@@ -36,7 +36,6 @@ class APnutI
   protected array $headers = [];
   protected ?string $server_token;
   protected ?string $access_token;
-  protected LoggerInterface $logger;
   protected string $token_session_key;
   protected string $token_redirect_after_auth;
   protected ?string $server_token_file_path = null;
@@ -45,6 +44,7 @@ class APnutI
 
   public ?Meta $meta = null;
   public string $app_name = 'Abstract API';
+  public LoggerInterface $logger;
 
   /*
    * Error codes:

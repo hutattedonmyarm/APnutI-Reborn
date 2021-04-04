@@ -151,6 +151,45 @@ class Poll
     return $this-api->voteInPoll($this->id, $options, $this->token);
   }
 
+  /*
+   * This is inconsistend with most other functions (which are provided directly by the API object.
+   * I should probably settle on one of the two styles.
+   * I prefer having the methods in here, but having to pass the API object along is not so great,
+   * neither is having to make the API's logger public
+   * TODO for v2 I guess
+   */
+  public static function create(
+      APnutI $api,
+      string $prompt,
+      array $options,
+      int $max_options,
+      int $duration_minutes,
+      bool $is_anonymous,
+      bool $is_public
+  ): Poll {
+    $options = array_filter($options);
+    $options = array_map(
+        function ($v) {
+          return ['text' => $v];
+        },
+        $options
+    );
+    $params = [
+      'duration' => $duration_minutes,
+      'options' => array_filter($options), #filters empty options
+      'prompt' => $prompt,
+      'type' => 'io.pnut.core.poll',
+      'is_anonymous' => $is_anonymous,
+      'is_public' => $is_public,
+      'max_options' => $max_options
+    ];
+    $api->logger->debug('Creating poll');
+    $api->logger->debug(json_encode($params));
+    $resp = $api->post('/polls', $params, 'application/json');
+    #TODO: Use getPollFromEndpoint
+    return new Poll($resp, $api);
+  }
+
   public function __toString(): string
   {
     if (!empty($this->user)) {

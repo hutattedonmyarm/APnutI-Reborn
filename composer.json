@@ -1,6 +1,7 @@
 {
   "name": "hutattedonmyarm/apnuti",
   "type": "library",
+  "version": "0.1.0",
   "description": "PHP Pnut library",
   "keywords": ["pnut", "api"],
   "license": "MIT",
